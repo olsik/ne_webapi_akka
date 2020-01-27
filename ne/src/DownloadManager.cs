@@ -2,6 +2,8 @@ using Akka.Actor;
 using Akka.Routing;
 using System;
 using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace ne
 {
@@ -37,15 +39,15 @@ namespace ne
         // { }
         #endregion Message classes
 
-        // IActorRef D;//Downloader
+        IActorRef D;//Downloader
         // public static int Index = 0;
 
         public DownloadManager()
         {
             InitialReceives();
-            // D = Context.ActorOf(Props.Create(() => new Downloader())
-            //     .WithRouter(new RoundRobinPool(5))
-            // );
+            D = Context.ActorOf(Props.Create(() => new Downloader())
+                .WithRouter(new RoundRobinPool(1))
+            );
         }
         // private List<FundRequest> CreateRequestList(Start par)
         // {
@@ -60,12 +62,25 @@ namespace ne
             {
                 try
                 {
-                    // List<FundGroup> Groups2=this.Groups;
-
                     // BusinesLogic.Log.Logging(BusinesLogic.OP, "START");
                     // List<FundRequest> RL = CreateRequestList(par);
                     // for (int i = 0; i < RL.Count; i++)
                     //     D.Tell(RL[i]);
+                    
+                    // Task[] res = new Task[par.Funds.Count];
+                    Task<object>[] tasks = new Task<object>[1];
+
+                    Fund f = par.Funds[0];
+                    // foreach (Fund f in par.Funds)
+                        tasks[0] = D.Ask(new FundRequest { FundId = f.Id, From = par.From, To = par.To, Tag = f });
+                    Task.WaitAll(tasks);
+                    
+                    List<FundResponce> res = new List<FundResponce>();
+                    FundResponce CurResponce;
+                    foreach(Task<object> t in tasks)
+                        if(null != (CurResponce=t.Result as FundResponce))
+                            res.Add(CurResponce);
+                    Sender.Tell(res);
                 }
                 catch (Exception ex)
                 {
