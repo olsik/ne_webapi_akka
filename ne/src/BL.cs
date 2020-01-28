@@ -96,12 +96,9 @@ namespace ne
             FundGroup fg = Groups.FirstOrDefault(x => x.Name == FundGroupName);
             if (fg != null)
             {
-                Task<object>[] tasks = new Task<object>[2];
+                Task<object>[] tasks = new Task<object>[fg.Funds.Count];
 
-                for (int i = 0; i < 2; i++)
-                    // Fund f = fg.Funds[0];
-                    // Fund f = fg.Funds[0];
-                    // foreach (Fund f in fg.Funds)
+                for (int i = 0; i < fg.Funds.Count; i++)
                     tasks[i] = D.Ask(new FundRequest { FundId = fg.Funds[i].Id, From = FromDate.Value, To = ToDate.Value, Tag = fg.Funds[i] });
                 Task.WaitAll(tasks);
 
@@ -110,22 +107,39 @@ namespace ne
                 foreach (Task<object> t in tasks)
                     if (null != (CurResponce = t.Result as FundResponce))
                         res.Add(CurResponce);
-
+                res = res.OrderBy(x => x.FundId).ToList();
 
                 // DownloadManager.Start st = new DownloadManager.Start(fg) { From = FromDate.Value, To = ToDate.Value };
                 // Task<object> res = DM.Ask(st);
                 // res.Wait();
                 // List<FundResponce> responces= res.Result as List<FundResponce>;
-                if (res != null)
-                    for (int i = 0; i < res.Count; i++)
-                    {
-                        string gn = res[i].FundId.ToString();
-                        FundsList += "data.addColumn('number', '" + gn + "'); ";
-                        // GroupsList="<option value='"+gn+"'>"+gn+"</option>";
 
+                if (res == null)
+                    return;
+
+                for (int f = 0; f < res.Count; f++)
+                    FundsList += "data.addColumn('number', '" + res[f].FundId.ToString() + "'); ";
+                FundsList += "data.addColumn('number', '0'); ";//add fiction series
+
+                List<DateTime> dates = (from fr in res
+                                        from dv in fr.DayValues
+                                        select dv.Date)
+                                    .Distinct().OrderBy(x => x).ToList();
+                ValuesList = "data.addRows([ ";
+                for (int d = 0; d < dates.Count; d++)
+                {
+                    string curValue = string.Format("[new Date ({0}, {1}, {2}), ", dates[d].Year, dates[d].Month, dates[d].Day);
+                    for (int f = 0; f < res.Count; f++)
+                    {
+                        DayValue dv = res[f].DayValues.FirstOrDefault(x => x.Date == dates[d]);
+                        curValue += (dv == null ? "," : dv.Percent.ToString() + ",");
                     }
+                    ValuesList += curValue + "0], "; //add fiction series
+                }
+                ValuesList = ValuesList.Substring(0, ValuesList.Length - 2) + " ]);";
             }
-            ValuesList = "data.addRows([ [0, 0, 10], [1, 10, 12], [2, 7, 8], [3, 17, 13], [4, 18, 7], [5, 9, 14] ]);";
+            // ValuesList = "data.addRows([ [new Date (2016, 8, 1), 0, 10], [new Date (2016, 8, 2), 10, 12], [new Date (2016, 8, 3), 7, 8], [new Date (2016, 8, 5), 17, 13], [new Date (2016, 8, 7), 18, 7], [new Date (2016, 8, 9), 9, 14] ]);";
+
         }
     }
 }
