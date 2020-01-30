@@ -109,6 +109,9 @@ namespace ne
                         res.Add(CurResponce);
                 res = res.OrderBy(x => x.FundId).ToList();
 
+                // foreach(FundResponce r in res)
+                //     r.SaveToFile();
+
                 // DownloadManager.Start st = new DownloadManager.Start(fg) { From = FromDate.Value, To = ToDate.Value };
                 // Task<object> res = DM.Ask(st);
                 // res.Wait();
@@ -128,7 +131,7 @@ namespace ne
                 ValuesList = "data.addRows([ ";
                 for (int d = 0; d < dates.Count; d++)
                 {
-                    string curValue = string.Format("[new Date ({0}, {1}, {2}), ", dates[d].Year, dates[d].Month, dates[d].Day);
+                    string curValue = string.Format("[new Date ({0}, {1}, {2}), ", dates[d].Year, dates[d].Month - 1, dates[d].Day);
                     for (int f = 0; f < res.Count; f++)
                     {
                         DayValue dv = res[f].DayValues.FirstOrDefault(x => x.Date == dates[d]);
@@ -138,8 +141,6 @@ namespace ne
                 }
                 ValuesList = ValuesList.Substring(0, ValuesList.Length - 2) + " ]);";
             }
-            // ValuesList = "data.addRows([ [new Date (2016, 8, 1), 0, 10], [new Date (2016, 8, 2), 10, 12], [new Date (2016, 8, 3), 7, 8], [new Date (2016, 8, 5), 17, 13], [new Date (2016, 8, 7), 18, 7], [new Date (2016, 8, 9), 9, 14] ]);";
-
         }
     }
 }

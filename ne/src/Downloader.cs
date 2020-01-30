@@ -91,6 +91,19 @@ namespace ne
                         }
 
                         responce.DayValues = responce.DayValues.OrderBy(x => x.Date).ToList();
+                        for (int i = responce.DayValues.Count - 1; i > 0; i--)
+                        {
+                            int DaysGap = (int)(responce.DayValues[i].Date - responce.DayValues[i - 1].Date).TotalDays;
+                            float ValueDelta = (responce.DayValues[i].Value - responce.DayValues[i - 1].Value) / DaysGap;
+                            for (int d = 1; d < DaysGap; d++)
+                                responce.DayValues.Add(new DayValue
+                                {
+                                    Date = responce.DayValues[i - 1].Date.AddDays(d),
+                                    Value = responce.DayValues[i - 1].Value + d * ValueDelta,
+                                });
+                        }
+                        responce.DayValues = responce.DayValues.OrderBy(x => x.Date).ToList();
+
                         for (int i = 0; i < responce.DayValues.Count; i++)
                             responce.DayValues[i].Index = i;
 
