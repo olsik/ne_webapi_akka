@@ -141,7 +141,7 @@ namespace ne
             if(CommonGroup!=null)
             {
                 //split the "Common" group
-                int CommonGroupSize = 10;
+                int CommonGroupSize = 30;
                 CommonGroup.Funds = CommonGroup.Funds.OrderBy(x => x.Id).ToList();
                 int CurSubGroupIndex = 0;
                 while(CommonGroup.Funds.Count>0)
