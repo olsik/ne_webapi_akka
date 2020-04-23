@@ -23,8 +23,8 @@ namespace ne
         { }
         #endregion Message classes
 
-        public static object syncObj = new object();
-        int m_Index;
+        // public static object syncObj = new object();
+        int m_Index = 0;
         public Downloader()
         {
             // lock (syncObj)
@@ -107,10 +107,11 @@ namespace ne
                         for (int i = 0; i < responce.DayValues.Count; i++)
                             responce.DayValues[i].Index = i;
 
-                        if (responce.Tag != null && responce.Tag.IdBuyed)
-                            for (int i = responce.DayValues.Count - 1; i >= 0; i--)
-                                if (responce.DayValues[i].Date < responce.Tag.BuyDate)
-                                    responce.DayValues.RemoveAt(i);
+//remove before bay date???
+                        // if (responce.Tag != null && responce.Tag.IdBuyed)
+                        //     for (int i = responce.DayValues.Count - 1; i >= 0; i--)
+                        //         if (responce.DayValues[i].Date < responce.Tag.BuyDate)
+                        //             responce.DayValues.RemoveAt(i);
 
                         responce.DayValuesReorganize();
 

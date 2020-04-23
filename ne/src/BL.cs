@@ -5,6 +5,8 @@ using Logging2;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.IO;
+using System.Globalization;
 
 namespace ne
 {
@@ -210,16 +212,23 @@ namespace ne
 
                 List<FundResponce> res = new List<FundResponce>();
                 FundResponce CurResponce;
+                bool pause = false;
                 foreach (Task<object> t in tasks)
                     if (null != (CurResponce = t.Result as FundResponce))
                         res.Add(CurResponce);
+                    else
+                        pause = true;
                 res = res.OrderBy(x => x.FundId).ToList();
-
-                // foreach(FundResponce r in res)
-                //     r.SaveToFile();
 
                 if (res == null)
                     return;
+
+                string csv = "FundId,Date,Value,Percent\n";
+                foreach (FundResponce r in res)
+                    csv += r.ToString();
+                string fn = "./Data/" + DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss", CultureInfo.InvariantCulture) + ".csv";
+                Directory.CreateDirectory(Path.GetDirectoryName(fn));
+                File.WriteAllText(fn, csv);
 
                 FundsList = ", colors: [";
                 int ResIndex = 0;

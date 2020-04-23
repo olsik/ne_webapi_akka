@@ -1,4 +1,4 @@
-using Akka.Actor;
+/*using Akka.Actor;
 using Akka.Routing;
 using System;
 using System.Collections.Generic;
@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace ne
 {
-    public class DownloadManager : ReceiveActor
+    public class _DownloadManager : ReceiveActor
     {
         // private List<FundGroup> _Groups;
         // public List<FundGroup> Groups
@@ -42,11 +42,11 @@ namespace ne
         IActorRef D;//Downloader
         // public static int Index = 0;
 
-        public DownloadManager()
+        public _DownloadManager()
         {
             InitialReceives();
             D = Context.ActorOf(Props.Create(() => new Downloader())
-                .WithRouter(new RoundRobinPool(1))
+                .WithRouter(new RoundRobinPool(5))
             );
         }
         // private List<FundRequest> CreateRequestList(Start par)
@@ -115,4 +115,4 @@ namespace ne
         }
 
     }
-}
+}*/

@@ -44,6 +44,16 @@ namespace ne
             Directory.CreateDirectory(Path.GetDirectoryName(fn));
             File.WriteAllText(fn, WebResponce);
         }
+        public override string ToString()
+        {
+            string res = "";
+            foreach (DayValue dv in DayValues)
+                res += FundId.ToString() + "," + dv.Date.ToString("yyyy/MM/dd",CultureInfo.InvariantCulture)
+                + "," + dv.Value.ToString(CultureInfo.InvariantCulture) 
+                + "," + dv.Percent.ToString(CultureInfo.InvariantCulture)
+                + Environment.NewLine;
+            return res;
+        }
     }
     public class DayValue
     {
@@ -70,6 +80,18 @@ namespace ne
 
         public bool IdBuyed { get { return BuyCash.HasValue; } }
 
+        public Fund Clone(string groupName)
+        {
+            return new Fund
+            {
+                Id = this.Id,
+                GroupName = groupName ?? this.GroupName,
+                BuyDate = this.BuyDate,
+                BuyCount = this.BuyCount,
+                BuyCash = this.BuyCash,
+
+            };
+        }
         public static Fund CreateFromLine(string line)
         {
             Fund res; int temp_i; DateTime temp_d; float temp_f;
@@ -111,14 +133,14 @@ namespace ne
         // public List<FundGroup> Groups = new List<FundGroup>();
         public static List<FundGroup> LoadFundGroups(out string ErrMes)
         {
-            ErrMes=null;
+            ErrMes = null;
             List<FundGroup> res = null;
-            if(!File.Exists(BusinesLogic.NeFileName))
+            if (!File.Exists(BusinesLogic.NeFileName))
             {
-                ErrMes="File '"+BusinesLogic.NeFileName+"' not found";
+                ErrMes = "File '" + BusinesLogic.NeFileName + "' not found";
                 return res;
             }
-            
+
             string[] lines = File.ReadAllLines(BusinesLogic.NeFileName);
             char[] splitters = new char[] { ',' };
             if (lines.Length == 0)
@@ -129,7 +151,7 @@ namespace ne
             for (int i = 1; i < lines.Length; i++)
             {
                 Fund curFund = Fund.CreateFromLine(lines[i]);
-                if (curFund != null)
+                if (curFund != null && curFund.Id != 5127790)
                 {
                     FundGroup curGroup = res.FirstOrDefault(x => x.Name == curFund.GroupName);
                     if (curGroup == null)
@@ -138,26 +160,41 @@ namespace ne
                 }
             }
             FundGroup CommonGroup = res.FirstOrDefault(x => x.Name == Fund.CommonGroupName);
-            if(CommonGroup!=null)
+            if (CommonGroup != null)
             {
                 //split the "Common" group
-                int CommonGroupSize = 30;
-                CommonGroup.Funds = CommonGroup.Funds.OrderBy(x => x.Id).ToList();
-                int CurSubGroupIndex = 0;
-                while(CommonGroup.Funds.Count>0)
+                int CommonGroupSize = 8;
+                
+                //!!! CommonGroup.Funds = CommonGroup.Funds.OrderBy(x => x.Id).ToList();
+
+                // int CurSubGroupIndex = 0;
+                // while(CommonGroup.Funds.Count>0)
+                // {
+                //     FundGroup curGroup = new FundGroup() { Name = Fund.CommonGroupName +"_"+CurSubGroupIndex.ToString()};
+                //     curGroup.Funds = CommonGroup.Funds.Take(CommonGroupSize).ToList();
+                //     res.Add(curGroup);
+                //     foreach (Fund f in curGroup.Funds)
+                //     {
+                //         CommonGroup.Funds.Remove(f);
+                //         f.GroupName = curGroup.Name;
+                //     }
+                //     CurSubGroupIndex++;
+                // }
+                for (int CurSubGroupIndex = 0;
+                    CurSubGroupIndex <= CommonGroup.Funds.Count / CommonGroupSize; CurSubGroupIndex++)
                 {
-                    FundGroup curGroup = new FundGroup() { Name = Fund.CommonGroupName +"_"+CurSubGroupIndex.ToString()};
-                    curGroup.Funds = CommonGroup.Funds.Take(CommonGroupSize).ToList();
-                    res.Add(curGroup);
-                    foreach (Fund f in curGroup.Funds)
+                    FundGroup curGroup = new FundGroup()
                     {
-                        CommonGroup.Funds.Remove(f);
-                        f.GroupName = curGroup.Name;
-                    }
-                    CurSubGroupIndex++;
+                        Name = Fund.CommonGroupName + "_" + CurSubGroupIndex.ToString(),
+                        Funds = new List<Fund>(),
+                    };
+                    res.Add(curGroup);
+                    for (int i = CurSubGroupIndex * CommonGroupSize;
+                      i < CommonGroup.Funds.Count && i < (CurSubGroupIndex + 1) * CommonGroupSize; i++)
+                        curGroup.Funds.Add(CommonGroup.Funds[i].Clone(curGroup.Name));
                 }
             }
-//            res.SaveToFile();
+            //res.SaveToFile();
             return res;
         }
 
