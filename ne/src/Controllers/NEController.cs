@@ -51,7 +51,7 @@ namespace ne.Controllers
         public IActionResult GetPage(DateTime? FromDate, DateTime? ToDate, string FundGroupName)
         {
             BusinesLogic.Log.Logging(BusinesLogic.OP, string.Format("FromDate: {0}, ToDate: {1}, FundGroupName: {2}", FromDate, ToDate, FundGroupName));
-
+            BusinesLogic.Log.Logging(BusinesLogic.OP, TemplateFileName[TemplateIndex]);
             if (!System.IO.File.Exists(TemplateFileName[TemplateIndex]))
                 return NotFound();
             string Template = System.IO.File.ReadAllText(TemplateFileName[TemplateIndex]);
