@@ -77,7 +77,7 @@ namespace ne
         public DateTime? BuyDate;
         public int? BuyCount;
         public float? BuyCash;
-
+        public DateTime? SaleDate;
         public bool IdBuyed { get { return BuyCash.HasValue; } }
 
         public Fund Clone(string groupName)
@@ -89,7 +89,7 @@ namespace ne
                 BuyDate = this.BuyDate,
                 BuyCount = this.BuyCount,
                 BuyCash = this.BuyCash,
-
+                SaleDate=this.SaleDate,
             };
         }
         public static Fund CreateFromLine(string line)
@@ -116,6 +116,9 @@ namespace ne
 
             if (parts.Length > 4 && float.TryParse(parts[4], NumberStyles.Any, CultureInfo.InvariantCulture, out temp_f))
                 res.BuyCash = temp_f;
+
+            if (parts.Length > 5 && DateTime.TryParseExact(parts[5], NeDateFormat, null, DateTimeStyles.None, out temp_d))
+                res.SaleDate = temp_d;
 
             return res;
         }
@@ -242,19 +245,22 @@ namespace ne
         //     }
         // }
     }
-    public class DayValue2 : DayValue
-    {
-    }
+    // public class DayValue2 : DayValue
+    // {
+    // }
     public class AverageSerieData
     {
-        public List<DayValue2> dayValues;
+        // public List<DayValue2> dayValues;
+        public List<DayValue> dayValues;
         public int SeriesCount = 0;
         public AverageSerieData(DateTime From, DateTime To)
         {
-            dayValues = new List<DayValue2>();
+            // dayValues = new List<DayValue2>();
+            dayValues = new List<DayValue>();
             int CurIndex = 0;
             for (DateTime d = From; d <= To; d = d.AddDays(1))
-                dayValues.Add(new DayValue2 { Date = d, Percent = 0, Value = 0, Index = CurIndex++ });
+                // dayValues.Add(new DayValue2 { Date = d, Percent = 0, Value = 0, Index = CurIndex++ });
+                dayValues.Add(new DayValue { Date = d, Percent = 0, Value = 0, Index = CurIndex++ });
         }
         public void AddSerie(List<DayValue> SerieValues)
         {
