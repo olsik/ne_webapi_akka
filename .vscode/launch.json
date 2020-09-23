@@ -10,21 +10,22 @@
             "request": "launch",
             "preLaunchTask": "build",
             // If you have changed target frameworks, make sure to update the program path.
-            "program": "${workspaceFolder}/ne/bin/Debug/netcoreapp3.0/ne.dll",
+            "program": "${workspaceFolder}/bin/Debug/netcoreapp3.1/ne_webapi_akka.dll",
             "args": [],
-            "cwd": "${workspaceFolder}/ne",
+            "cwd": "${workspaceFolder}",
             "stopAtEntry": false,
             // Enable launching a web browser when ASP.NET Core starts. For more information: https://aka.ms/VSCode-CS-LaunchJson-WebBrowser
             "serverReadyAction": {
                 "action": "openExternally",
-                "pattern": "^\\s*Now listening on:\\s+(https?://\\S+)"                
+                "pattern": "\\bNow listening on:\\s+(https?://\\S+)"
             },
             "env": {
                 "ASPNETCORE_ENVIRONMENT": "Development"
             },
             "sourceFileMap": {
                 "/Views": "${workspaceFolder}/Views"
-            }
+            },
+            "console": "externalTerminal"
         },
         {
             "name": ".NET Core Attach",

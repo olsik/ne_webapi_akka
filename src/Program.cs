@@ -1,20 +1,26 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
-using Akka.Actor;
+using Serilog;
 
-namespace ne
+namespace ne_webapi_akka
 {
     public class Program
     {
-        // public static ActorSystem AS;
-        // static IActorRef DM;
         public static void Main(string[] args)
         {
-            // DM.Tell(new DownloadManager.Start());
-            BusinesLogic.BL=new BusinesLogic();
+            Log.Logger  = new LoggerConfiguration()
+                .WriteTo.Console()
+                .WriteTo.File("./logs/myapp.log", rollingInterval: RollingInterval.Day)
+                .CreateLogger();
+            Log.Information("-------------");
+            Log.Information("ne_webapi_akka STARTED");
 
             CreateHostBuilder(args).Build().Run();
-
         }
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>
