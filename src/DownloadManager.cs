@@ -12,7 +12,7 @@ namespace ne_webapi_akka
 
         private IActorRef _downloaderRef; //Downloader
         private List<FundRequest> _requests = new List<FundRequest>();
-        private DownloadFinished DF = new DownloadFinished();
+        private DownloadFinished DF;
         private bool _stopCommand;
 
         public static Status status = Status.Ready;
@@ -22,7 +22,7 @@ namespace ne_webapi_akka
         {
             InitialReceives();
             _downloaderRef = Context.ActorOf(Props.Create(() => new Downloader())
-                .WithRouter(new RoundRobinPool(1))
+                .WithRouter(new RoundRobinPool(4))
             );
         }
 
@@ -34,7 +34,7 @@ namespace ne_webapi_akka
                 {
                     _stopCommand = false;
                     _requests.Clear();
-                    DF.Responces.Clear();
+                    DF = new DownloadFinished();
                     DownloadManager.status = Status.InProcess;
 
                     FundGroup fg = FundGroups.Groups?.FirstOrDefault(x => x.Name == (par.FundGroupName ?? "nosale"));
@@ -122,13 +122,13 @@ namespace ne_webapi_akka
                     Log.Error("DownloadManager:FailedFun " + ex.Message);
                 }
             });
-            Receive<StartResearch>(par =>
+            Receive<StartResearch_Step1>(par =>
             {
                 try
                 {
                     _stopCommand = false;
                     _requests.Clear();
-                    DF.Responces.Clear();
+                    DF = new DownloadFinished_Research_Step1();
                     DownloadManager.status = Status.InProcess;
 
                     FundGroup fg = FundGroups.Groups?.FirstOrDefault(x => x.Name == Fund.AllGroupName);
@@ -136,7 +136,7 @@ namespace ne_webapi_akka
                         Sender.Tell(new FundGroupNotFound());
                     else
                     {
-                        DF.From = DateTime.Now.AddMonths(-1);
+                        DF.From = DateTime.Now.AddDays(-Research.CheckPeriod_Days - 2);
                         DF.To = DateTime.Now;
                         DF.FundGroupName = fg.Name;
 
@@ -159,7 +159,7 @@ namespace ne_webapi_akka
                 }
                 catch (Exception ex)
                 {
-                    Log.Error("DownloadManager:StartDownload " + ex.Message);
+                    Log.Error("DownloadManager:StartResearch_Step1 " + ex.Message);
                 }
             });
         }

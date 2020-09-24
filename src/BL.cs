@@ -16,12 +16,13 @@ namespace ne_webapi_akka
         private IActorRef _downloadManagerRef;
         private IActorRef _htmlCreatorRef;
         private IActorRef _neControllerRef;
+        private IActorRef _researchRef;
 
         public BL()
         {
             _downloadManagerRef = Context.ActorOf(Props.Create(() => new DownloadManager()));
             _htmlCreatorRef = Context.ActorOf(Props.Create(() => new HtmlCreator()));
-
+            _researchRef = Context.ActorOf(Props.Create(() => new Research()));
             InitialReceives();
         }
         private void InitialReceives()
@@ -31,7 +32,10 @@ namespace ne_webapi_akka
                 Log.Information("Download started");
                 if (_downloadManagerRef != null)
                     _downloadManagerRef.Tell(par);
-                _neControllerRef = Sender;
+
+                StartDownload_Research par_Research = par as StartDownload_Research;
+                if (par_Research == null)
+                    _neControllerRef = Sender;
             });
             Receive<FundGroupNotFound>(par =>
             {
@@ -46,24 +50,20 @@ namespace ne_webapi_akka
             Receive<DownloadFinished>(par =>
             {
                 Log.Information("Download finished");
-                // Create Series
-                List<FundResponce> ResponcesBeforeBuy = new List<FundResponce>();
-
-                for (int i = 0; i < par.Responces.Count; i++)
+                DownloadFinished_Research_Step1 par_Research = par as DownloadFinished_Research_Step1;
+                if (par_Research == null)
                 {
-                    par.Responces[i].Color = HtmlCreator.ColorPallete[i % HtmlCreator.ColorPallete.Length];
-                    int BuyDateIndex = par.Responces[i].FillDayValues();
-                    if (BuyDateIndex > 0)
-                        ResponcesBeforeBuy.Add(par.Responces[i].CreateBeforeBuyResonce(BuyDateIndex));
+                    CreateSeries(par);
+
+                    if (_htmlCreatorRef != null)
+                        _htmlCreatorRef.Tell(par);
                 }
-                par.Responces.AddRange(ResponcesBeforeBuy);
-
-                CalculateAverageSerie(ref par.Responces);
-
-                if (_htmlCreatorRef != null)
-                    _htmlCreatorRef.Tell(par);
-                // if (_neControllerRef != null)
-                //     _neControllerRef.Tell("DownloadFinished", Self);
+                else
+                {
+                    Research(par_Research);
+                    if (_researchRef != null)
+                        _researchRef.Tell(par_Research);
+                }
             });
             Receive<HtmlCreated>(par =>
             {
@@ -75,9 +75,9 @@ namespace ne_webapi_akka
                     System.IO.File.WriteAllText(@"./temp/out.htm", par.Content);
                 }
             });
-            Receive<StartResearch>(par =>
+            Receive<StartResearch_Step1>(par =>
             {
-                Log.Information("Download started");
+                Log.Information("Research step 1 started");
                 if (_downloadManagerRef != null)
                     _downloadManagerRef.Tell(par);
                 _neControllerRef = Sender;
@@ -139,7 +139,28 @@ namespace ne_webapi_akka
 
         private void CreateSeries(DownloadFinished par)
         {
-            par.Responces.Select(x => x.FillDayValues()).Count();
+            List<FundResponce> ResponcesBeforeBuy = new List<FundResponce>();
+
+            for (int i = 0; i < par.Responces.Count; i++)
+            {
+                par.Responces[i].Color = HtmlCreator.ColorPallete[i % HtmlCreator.ColorPallete.Length];
+                int BuyDateIndex = par.Responces[i].FillDayValues();
+                if (BuyDateIndex > 0)
+                    ResponcesBeforeBuy.Add(par.Responces[i].CreateBeforeBuyResonce(BuyDateIndex));
+            }
+            par.Responces.AddRange(ResponcesBeforeBuy);
+
+            CalculateAverageSerie(ref par.Responces);
         }
+        private void Research(DownloadFinished par)
+        {
+            for (int i = 0; i < par.Responces.Count; i++)
+            {
+                par.Responces[i].FillDayValues();
+
+            }
+
+        }
+
     }
 }
